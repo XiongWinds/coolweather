@@ -22,10 +22,10 @@ public class HttpClient {
     private DataOutputStream dataOutputStream = null;
     private String content;
 
-    HttpClient(){
+    public HttpClient(){
     }
 
-    HttpClient(String url){
+    public HttpClient(String url){
         if( this.urlConnection == null ){
             try {
                 URL lurl = new URL(url);
@@ -55,11 +55,11 @@ public class HttpClient {
 
     public static void main(String []args){
         String urls[] = new String[5];
-        urls[0] = "http://www.weather.com.cn/data/list3/city.xml";
-        urls[1] = "http://www.weather.com.cn/data/list3/city19.xml";
-        urls[2] = "http://www.weather.com.cn/data/list3/city1904.xml";
-        urls[3] = "http://www.weather.com.cn/data/list3/city190404.xml";
-        urls[4] = "http://www.weather.com.cn/data/cityinfo/101190404.html";
+        urls[0] = "https://www.weather.com.cn/data/list3/city.xml";
+        urls[1] = "http://www.weather.com.cn/data/list3/city16.xml";
+        urls[2] = "http://www.weather.com.cn/data/list3/city1601.xml";
+        urls[3] = "http://www.weather.com.cn/data/list3/city160101.xml";
+        urls[4] = "http://www.weather.com.cn/data/cityinfo/101160101.html";
 
         for( int i = 0 ; i < urls.length ; ++i ){
             HttpClient httpClient = new HttpClient(urls[i]);
@@ -69,8 +69,6 @@ public class HttpClient {
                 e.printStackTrace();
             }
         }
-
-
     }
 
 }
