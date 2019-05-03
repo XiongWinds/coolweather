@@ -1,10 +1,13 @@
-package com.ypb.coolweather.tools.inter;
+package com.ypb.coolweather.tools;
 
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
+import android.os.Handler;
+import android.os.Message;
 
 import com.ypb.coolweather.Constants.AreaLevel;
+import com.ypb.coolweather.Constants.Constant;
 import com.ypb.coolweather.Constants.DBManipulateType;
 import com.ypb.coolweather.Constants.LogLevel;
 import com.ypb.coolweather.db.DBhelper;
@@ -15,6 +18,7 @@ import com.ypb.coolweather.model.Province;
 import com.ypb.coolweather.tools.HttpClient;
 import com.ypb.coolweather.tools.ParseArea;
 import com.ypb.coolweather.tools.impl.GenAreaImpl;
+import com.ypb.coolweather.tools.inter.GenArea;
 import com.ypb.coolweather.tools.util.Log;
 
 import java.io.IOException;
@@ -36,16 +40,23 @@ public class IndbMain implements  Runnable{
     private String preWeather = "";
     private String postWeather = "";
     private DBhelper dbhelper = null;
+    private boolean dbCreated = false;
+    private Handler handler = null;
 
     private Map<Province, Set<Map<City,Set<County>>> > areas = new HashMap<>();
-
     Context cnt = null;
+
     Log log = Log.getInstance();
 
     public IndbMain(){}
 
     public IndbMain(Context cnt){
         this.cnt = cnt;
+    }
+
+    public IndbMain(Context cnt, Handler handler){
+        this.cnt = cnt;
+        this.handler = handler;
     }
 
     private String[] formDbTables(){
@@ -62,16 +73,15 @@ public class IndbMain implements  Runnable{
     public boolean createDb(){
         String dbName = "wthr.db";
         int dbVersion = 1;
-        DBhelper dBhelper = new DBhelper(cnt,dbName,null,dbVersion);
+        DBhelper dBhelper = DBhelper.getInstance(cnt,dbName,null,dbVersion);
         dBhelper.setDBTables(formDbTables());
         dBhelper.getWritableDatabase();
         this.dbhelper = dBhelper;
+        dbCreated = false;
         return true;
     }
 
     public int getData(){
-
-
         try {
             HttpClient httpClient = new HttpClient(preProvince);
             String provinceStr = httpClient.request();
@@ -101,12 +111,9 @@ public class IndbMain implements  Runnable{
                     List<County> listCounty = parseArea.parse(gen);
                     Set<County> setCounty = new HashSet<>(listCounty);
 
-
                     Map<City,Set<County>>  mapCityOwnCounties = new HashMap<City, Set<County>>();
                     mapCityOwnCounties.put(city,setCounty);
                     setCityOwnCounties.add(mapCityOwnCounties);
-
-
                 }
                 areas.put(province,setCityOwnCounties);
             }
@@ -155,34 +162,41 @@ public class IndbMain implements  Runnable{
             log.print(LogLevel.DEBUG,"dbhelper==null");
             String dbName = "wthr.db";
             int dbVersion = 1;
-            DBhelper dBhelper = new DBhelper(cnt,dbName,null,dbVersion);
+            DBhelper dBhelper = DBhelper.getInstance(cnt,dbName,null,dbVersion);
             dBhelper.setDBTables(formDbTables());
             dBhelper.getWritableDatabase();
             this.dbhelper = dBhelper;
         }
-        dbhelper.execSql(DBManipulateType.INSERT,"province",listContentValues4Provinces);
-        dbhelper.execSql(DBManipulateType.INSERT,"city",listContentValues4Cities);
-        dbhelper.execSql(DBManipulateType.INSERT,"county",listContentValues4Counties);
+        dbhelper.insertSql("province",listContentValues4Provinces);
+        dbhelper.insertSql("city",listContentValues4Cities);
+        dbhelper.insertSql("county",listContentValues4Counties);
 
         return listContentValues4Counties.size();
 
     }
     @Override
     public void run() {
+        if (!dbCreated) {
+            Log log = Log.getInstance();
+            log.print(LogLevel.DEBUG, "before createDb");
+            //建库
+            createDb();
+            log.print(LogLevel.DEBUG, "after createDb");
+            log.print(LogLevel.DEBUG, "before getData");
+            //获取数据
+            getData();
+            log.print(LogLevel.DEBUG, "after getData");
+            log.print(LogLevel.DEBUG, "before insertDb");
+            //入库
+            insertDb();
+            log.print(LogLevel.DEBUG, "after insertDb");
+            dbCreated = true;
 
-        Log log = Log.getInstance();
-        log.print(LogLevel.DEBUG,"before createDb");
-        //建库
-        //createDb();
-        log.print(LogLevel.DEBUG,"after createDb");
-        log.print(LogLevel.DEBUG,"before getData");
-        //获取数据
-        getData();
-        log.print(LogLevel.DEBUG,"after getData");
-        log.print(LogLevel.DEBUG,"before insertDb");
-        //入库
-        insertDb();
-        log.print(LogLevel.DEBUG,"after insertDb");
+            Message msg = new Message();
+            msg.what = Constant.CREATE_DB;
+            msg.obj = new Object();
+            handler.sendMessage(msg);
+        }
     }
 
 

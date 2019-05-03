@@ -10,14 +10,16 @@
         android:layout_height="50dp">
 
         <TextView
-            android:id="@+id/content_id"
+            android:id="@+id/title_content"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="@color/colorPrimaryDark"
-            android:textColor="@color/textColor"/>
+            android:textColor="@color/textColor"
+            android:textSize="24sp"/>
     </RelativeLayout>
 
     <ListView
+        android:id="@+id/cities_list"
         android:background="@color/colorPrimary"
         android:layout_width="match_parent"
         android:layout_height="match_parent">

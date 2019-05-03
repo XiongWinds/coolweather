@@ -25,20 +25,16 @@ public class HttpClient {
     public HttpClient(){
     }
 
-    public HttpClient(String url){
+    public HttpClient(String url) throws  IOException{
         if( this.urlConnection == null ){
-            try {
-                URL lurl = new URL(url);
-                this.urlConnection = (HttpURLConnection)lurl.openConnection();
-                this.urlConnection.setRequestMethod("GET");
-                this.urlConnection.setReadTimeout(8000);
-                this.urlConnection.setConnectTimeout(8000);
+            URL lurl = new URL(url);
+            this.urlConnection = (HttpURLConnection)lurl.openConnection();
+            this.urlConnection.setRequestMethod("GET");
+            this.urlConnection.setReadTimeout(8000);
+            this.urlConnection.setConnectTimeout(8000);
 
-                dataInputStream = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
-                //dataOutputStream = new DataOutputStream(this.urlConnection.getOutputStream());
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            dataInputStream = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
+            //dataOutputStream = new DataOutputStream(this.urlConnection.getOutputStream());
         }
     }
 
@@ -46,24 +42,26 @@ public class HttpClient {
 
         StringBuffer sb = new StringBuffer(10000);
         String line ;
-
         while( ( line = this.dataInputStream.readLine() ) != null ){
             sb.append(line);
         }
+        this.urlConnection.disconnect();
         return sb.toString();
+
     }
 
     public static void main(String []args){
         String urls[] = new String[5];
-        urls[0] = "https://www.weather.com.cn/data/list3/city.xml";
+        urls[0] = "http://www.weather.com.cn/data/list3/city.xml";
         urls[1] = "http://www.weather.com.cn/data/list3/city16.xml";
         urls[2] = "http://www.weather.com.cn/data/list3/city1601.xml";
         urls[3] = "http://www.weather.com.cn/data/list3/city160101.xml";
         urls[4] = "http://www.weather.com.cn/data/cityinfo/101160101.html";
 
         for( int i = 0 ; i < urls.length ; ++i ){
-            HttpClient httpClient = new HttpClient(urls[i]);
+            HttpClient httpClient = null;
             try {
+                httpClient = new HttpClient(urls[i]);
                 System.out.println( httpClient.request() );
             } catch (IOException e) {
                 e.printStackTrace();

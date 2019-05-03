@@ -30,4 +30,8 @@ public class County extends Area{
     public String getSuperTag() {
         return superTag;
     }
+
+    public String toString(){
+        return this.name;
+    }
 }
