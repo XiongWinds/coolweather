@@ -43,13 +43,19 @@ public class DBhelper extends SQLiteOpenHelper {
         context = cnt;
     }
 
-    public static DBhelper getInstance(Context cnt,String name,CursorFactory factory, int version){
+    public static DBhelper createInstance(Context cnt,String name,CursorFactory factory, int version){
         if(dbhelper == null) {
             dbhelper = new DBhelper(cnt, name, factory, version);
             dbhelper.setDBTables(formDbTables());
         }
         return dbhelper;
     }
+
+    public static DBhelper getInstance(){
+        return dbhelper;
+    }
+
+
 
     public void setDBTables(String []dbTables){
         this.dbTables = dbTables;
@@ -76,14 +82,14 @@ public class DBhelper extends SQLiteOpenHelper {
         return db.query(table,columns,cond,condArgs,"","","","");
     }
 
-    public List<Area> queryCitiesByLevel(AreaLevel areaLevel,String superTag){
+    public void queryCitiesByLevel(AreaLevel areaLevel,String superTag,List<Area> listCities){
 
         String table="";
         String []columns = new String[]{"tag","name","superTag"};
         String cond = " superTag = ? ";
         String []condArgs = new String[]{superTag};
 
-        List<Area> listCities = new ArrayList<Area>();
+        listCities.clear();
         switch (areaLevel){
             case PROVINCE:
                 table = "province";
@@ -109,7 +115,6 @@ public class DBhelper extends SQLiteOpenHelper {
                 listCities.add(area);
             }while( cursor.moveToNext() );
         }
-        return listCities;
     }
 
     public List<ContentValues> convertAreasToContentValues(List<Area> list){

@@ -23,6 +23,7 @@ import com.ypb.coolweather.services.GetWeatherInfo;
 import com.ypb.coolweather.tools.IndbMain;
 import com.ypb.coolweather.tools.util.Log;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -54,16 +55,16 @@ public class MainActivity extends Activity {
         listView = findViewById(R.id.cities_list);
 
         textView.setText("中国");
-        dBhelper = DBhelper.getInstance(this,dbName,null,dbVersion);
-        listArea = dBhelper.queryCitiesByLevel(AreaLevel.PROVINCE,"");
+        dBhelper = DBhelper.createInstance(this,dbName,null,dbVersion);
+        listArea = new ArrayList<Area>();
+        dBhelper.queryCitiesByLevel(AreaLevel.PROVINCE,"",listArea);
 
         adapter = new ArrayAdapter<Area>(this,android.R.layout.simple_list_item_1,listArea);
         listView.setAdapter(adapter);
 
         handler = new Handler(){
             public void handleMessage(Message msg){
-                if(msg.what == Constant.WEATHER_DETAIL_INFO)
-                {
+                if(msg.what == Constant.WEATHER_DETAIL_INFO){
                     String weatherInfo = (String) msg.obj;
                     Intent intent = new Intent(outerContent, WeatherActivity.class);
                     Log.getInstance().print(LogLevel.DEBUG,"parameter........"+weatherInfo);
@@ -71,13 +72,18 @@ public class MainActivity extends Activity {
                     intent.putExtra(EXTRA_MESSAGE, weatherInfo);
                     startActivity(intent);
                 }else if( msg.what == Constant.CREATE_DB ){
-                    dBhelper = DBhelper.getInstance(outerContent,dbName,null,dbVersion);
+                    dBhelper = DBhelper.getInstance();
                     Log.getInstance().print(LogLevel.DEBUG,Integer.valueOf(listArea.size()).toString());
-                    listArea = dBhelper.queryCitiesByLevel(AreaLevel.PROVINCE,"");
+                    dBhelper.queryCitiesByLevel(AreaLevel.PROVINCE,"",listArea);
                     //adapter = new ArrayAdapter<Area>(outerContent,android.R.layout.simple_list_item_1,listArea);
                     //listView.setAdapter(adapter);
+                    for(Area pro:listArea){
+                        Log.getInstance().print(LogLevel.DEBUG,"name=="+pro.toString());
+                    }
+
                     adapter.notifyDataSetChanged();
                     listView.setSelection(0);
+                    String s = new String("sss");
                 }
             }
         };
@@ -98,18 +104,20 @@ public class MainActivity extends Activity {
                     String superTag = area.getTag();
                     String name = area.getName();
                     textView.setText(name);
-                    listArea = dBhelper.queryCitiesByLevel(AreaLevel.COUNTY,String.format("%04d",Integer.valueOf(superTag)));
+                    dBhelper.queryCitiesByLevel(AreaLevel.COUNTY,String.format("%04d",Integer.valueOf(superTag)),listArea);
                     //adapter = new ArrayAdapter<Area>(outerContent,android.R.layout.simple_list_item_1,listArea);
                     //listView.setAdapter(adapter);
                     adapter.notifyDataSetChanged();
+                    listView.setSelection(0);
                 }else if( area instanceof com.ypb.coolweather.model.Province ){
                     String superTag = area.getTag();
                     String name = area.getName();
                     textView.setText(name);
-                    listArea = dBhelper.queryCitiesByLevel(AreaLevel.CITY,String.format("%02d",Integer.valueOf(superTag)));
+                    dBhelper.queryCitiesByLevel(AreaLevel.CITY,String.format("%02d",Integer.valueOf(superTag)),listArea);
                     //adapter = new ArrayAdapter<Area>(outerContent,android.R.layout.simple_list_item_1,listArea);
                     //listView.setAdapter(adapter);
                     adapter.notifyDataSetChanged();
+                    listView.setSelection(0);
                 }
             }
         });

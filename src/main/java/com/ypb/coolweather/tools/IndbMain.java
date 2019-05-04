@@ -21,7 +21,14 @@ import com.ypb.coolweather.tools.impl.GenAreaImpl;
 import com.ypb.coolweather.tools.inter.GenArea;
 import com.ypb.coolweather.tools.util.Log;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -73,7 +80,7 @@ public class IndbMain implements  Runnable{
     public boolean createDb(){
         String dbName = "wthr.db";
         int dbVersion = 1;
-        DBhelper dBhelper = DBhelper.getInstance(cnt,dbName,null,dbVersion);
+        DBhelper dBhelper = DBhelper.getInstance();
         dBhelper.setDBTables(formDbTables());
         dBhelper.getWritableDatabase();
         this.dbhelper = dBhelper;
@@ -91,6 +98,8 @@ public class IndbMain implements  Runnable{
             ((GenAreaImpl) gen).setLevel(AreaLevel.PROVINCE);
             List<Province> listProvince = parseArea.parse(gen);
             for( Province province : listProvince){
+            //for( int i = 0 ; i < 1; ++i ){
+            //    Province province = listProvince.get(i);
                 String tag = province.getTag();
                 String cityUrl = this.preCity + tag + this.postCity;
                 HttpClient httpClientCity = new HttpClient(cityUrl);
@@ -162,7 +171,7 @@ public class IndbMain implements  Runnable{
             log.print(LogLevel.DEBUG,"dbhelper==null");
             String dbName = "wthr.db";
             int dbVersion = 1;
-            DBhelper dBhelper = DBhelper.getInstance(cnt,dbName,null,dbVersion);
+            DBhelper dBhelper = DBhelper.getInstance();
             dBhelper.setDBTables(formDbTables());
             dBhelper.getWritableDatabase();
             this.dbhelper = dBhelper;
@@ -170,13 +179,65 @@ public class IndbMain implements  Runnable{
         dbhelper.insertSql("province",listContentValues4Provinces);
         dbhelper.insertSql("city",listContentValues4Cities);
         dbhelper.insertSql("county",listContentValues4Counties);
-
         return listContentValues4Counties.size();
-
     }
+
+    private boolean isAppInstall(){
+        FileInputStream in = null;
+        BufferedReader reader = null;
+        StringBuilder content = new StringBuilder();
+        try{
+            in = cnt.openFileInput(Constant.installFileName);
+            reader = new BufferedReader(new InputStreamReader(in));
+            String line = "";
+            while( ( line = reader.readLine() ) != null){
+                content.append(line);
+            }
+            in.close();
+            if(content.toString().equals(Constant.installContent)){
+                Log.getInstance().print(LogLevel.DEBUG,"app has installed！");
+                return true;
+            }
+        }catch(IOException e){
+            if( e instanceof FileNotFoundException ) {
+                return false;
+            }
+            else e.printStackTrace();
+        }
+        return false;
+    }
+
+    private void recordFirstTime(){
+        String data = Constant.installContent;
+        FileOutputStream out = null;
+        BufferedWriter writer = null;
+        try {
+            out = cnt.openFileOutput(Constant.installFileName,Context.MODE_PRIVATE);
+            writer = new BufferedWriter(new OutputStreamWriter(out));
+            writer.write(data);
+            writer.flush();
+            Log.getInstance().print(LogLevel.DEBUG,"the first time installed!");
+        }catch(IOException ex){
+            ex.printStackTrace();
+        }finally {
+            if(writer != null) {
+                try {
+                    writer.close();
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
+            }
+        }
+    }
+
+
     @Override
     public void run() {
-        if (!dbCreated) {
+
+        if(isAppInstall()){
+            return;
+        }else{
+            recordFirstTime();
             Log log = Log.getInstance();
             log.print(LogLevel.DEBUG, "before createDb");
             //建库
