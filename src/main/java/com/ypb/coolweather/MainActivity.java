@@ -75,11 +75,6 @@ public class MainActivity extends Activity {
                     dBhelper = DBhelper.getInstance();
                     Log.getInstance().print(LogLevel.DEBUG,Integer.valueOf(listArea.size()).toString());
                     dBhelper.queryCitiesByLevel(AreaLevel.PROVINCE,"",listArea);
-                    //adapter = new ArrayAdapter<Area>(outerContent,android.R.layout.simple_list_item_1,listArea);
-                    //listView.setAdapter(adapter);
-                    for(Area pro:listArea){
-                        Log.getInstance().print(LogLevel.DEBUG,"name=="+pro.toString());
-                    }
 
                     adapter.notifyDataSetChanged();
                     listView.setSelection(0);

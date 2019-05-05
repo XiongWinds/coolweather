@@ -35,9 +35,10 @@ public class GetWeatherInfo implements Runnable{
 
     private String getWeatherTag(){
         String weatherTag = "";
+
         try {
-            httpClient = new HttpClient(preWeatherUrl+cityTag+postWeatherUrl);
-            Log.getInstance().print(LogLevel.DEBUG, "url=="+preWeatherUrl+cityTag+postWeatherUrl );
+            httpClient = new HttpClient(preWeatherUrl+String.format("%06d",Integer.valueOf(cityTag))+postWeatherUrl);
+            Log.getInstance().print(LogLevel.DEBUG, "url=="+preWeatherUrl+String.format("%06d",Integer.valueOf(cityTag))+postWeatherUrl );
             weatherTag = httpClient.request();
             Log.getInstance().print(LogLevel.DEBUG, weatherTag );
         } catch (IOException e) {

@@ -1,6 +1,8 @@
 package com.ypb.coolweather;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -9,6 +11,8 @@ import java.util.regex.Pattern;
 public class Test {
 
     private Test2 someName = null;
+
+    Test(){}
 
     Test(Test2 test2){
         this.someName = test2;
@@ -65,17 +69,16 @@ public class Test {
                 System.out.println("  null");
             }
             System.out.println(listClass.getName());
+
+
         }
     }
 
     public static void main(String args[]){
-        Test2 test2 = new Test2();
-        test2.setName("aaaa");
-        Test test = new Test(test2);
-        test.print3();
-        test2 = new Test2();
-        test2.setName("bbbb");
-        test.print3();
+        int lo = 2;
+        int hi = 10;
+        int mid = ( lo + hi ) >>> 1 ;
+        System.out.println(Integer.valueOf(mid).toString());
     }
 
     private void test2(){
